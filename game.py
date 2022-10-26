@@ -5,17 +5,21 @@ import time
 
 async def blink(canvas, row, column, symbol='*'):
     while True:
-        canvas.addstr(row, column, symbol, curses.A_DIM)
-        await asyncio.sleep(0)
+        for _ in range(20):
+            canvas.addstr(row, column, symbol, curses.A_DIM)
+            await asyncio.sleep(0)
 
-        canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            canvas.addstr(row, column, symbol)
+            await asyncio.sleep(0)
 
-        canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await asyncio.sleep(0)
+        for _ in range(5):
+            canvas.addstr(row, column, symbol, curses.A_BOLD)
+            await asyncio.sleep(0)
 
-        canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            canvas.addstr(row, column, symbol)
+            await asyncio.sleep(0)
 
 
 def draw(canvas):
@@ -30,7 +34,7 @@ def draw(canvas):
         for coroutine in coroutines.copy():
             coroutine.send(None)
             canvas.refresh()
-        time.sleep(1)
+        time.sleep(0.1)
 
 
 def main():
