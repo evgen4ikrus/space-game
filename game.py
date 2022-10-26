@@ -22,10 +22,14 @@ def draw(canvas):
     row, column = (10, 20)
     canvas.border()
     curses.curs_set(False)
-    coroutine = blink(canvas, row, column)
+    coroutines = []
+    for _ in range(5):
+        coroutines.append(blink(canvas, row, column))
+        column += 3
     while True:
-        coroutine.send(None)
-        canvas.refresh()
+        for coroutine in coroutines.copy():
+            coroutine.send(None)
+            canvas.refresh()
         time.sleep(1)
 
 
