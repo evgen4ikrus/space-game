@@ -1,5 +1,6 @@
 import curses
 import asyncio
+import random
 import time
 
 
@@ -23,12 +24,16 @@ async def blink(canvas, row, column, symbol='*'):
 
 
 def draw(canvas):
-    row, column = (10, 20)
     canvas.border()
     curses.curs_set(False)
+    max_row, max_column = curses.window.getmaxyx(canvas)
+    symbols = ['+', '*', '.', ':']
     coroutines = []
-    for _ in range(5):
-        coroutines.append(blink(canvas, row, column))
+    for _ in range(100):
+        row = random.choice(range(2, max_row-1))
+        column = random.choice(range(2, max_column-1))
+        symbol = random.choice(symbols)
+        coroutines.append(blink(canvas, row, column, symbol=symbol))
         column += 3
     while True:
         for coroutine in coroutines.copy():
