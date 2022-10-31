@@ -6,11 +6,11 @@ import time
 
 async def blink(canvas, row, column, symbol='*'):
     while True:
-        for _ in range(random.randint(1, 20)):
-            await asyncio.sleep(0)
-
         for _ in range(20):
             canvas.addstr(row, column, symbol, curses.A_DIM)
+            await asyncio.sleep(0)
+
+        for _ in range(random.randint(0, 20)):
             await asyncio.sleep(0)
 
         for _ in range(3):
