@@ -1,7 +1,11 @@
-import curses
 import asyncio
+import curses
+import os
 import random
 import time
+from itertools import cycle
+
+from curses_tools import draw_frame
 
 
 async def blink(canvas, row, column, symbol='*'):
@@ -55,11 +59,17 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 
 def draw(canvas):
+    with open(os.path.join('animations_frames', 'rocket_frame_1.txt'), "r") as file:
+        rocket_frame_1 = file.read()
+    with open(os.path.join('animations_frames', 'rocket_frame_2.txt'), "r") as file:
+        rocket_frame_2 = file.read()
+
     canvas.border()
     curses.curs_set(False)
     max_row, max_column = curses.window.getmaxyx(canvas)
     symbols = ['+', '*', '.', ':']
     coroutines = []
+
     for _ in range(100):
         row = random.choice(range(2, max_row-1))
         column = random.choice(range(2, max_column-1))
@@ -67,9 +77,16 @@ def draw(canvas):
         coroutines.append(blink(canvas, row, column, symbol=symbol))
         column += 3
     coroutines.append(fire(canvas, max_row/2, max_column/2, rows_speed=-2))
-    while True:
+
+    for frame in cycle('12'):
         try:
             for coroutine in coroutines.copy():
+                if frame == '1':
+                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_2, negative=True)
+                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_1)
+                else:
+                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_1, negative=True)
+                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_2)
                 coroutine.send(None)
                 canvas.refresh()
             time.sleep(0.1)
