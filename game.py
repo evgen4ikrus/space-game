@@ -5,7 +5,7 @@ import random
 import time
 from itertools import cycle
 
-from curses_tools import draw_frame, read_controls
+from curses_tools import draw_frame, read_controls, get_frame_size
 
 
 async def blink(canvas, row, column, symbol='*'):
@@ -67,19 +67,21 @@ def draw(canvas):
     canvas.border()
     curses.curs_set(False)
     canvas.nodelay(True)
-    max_row, max_column = curses.window.getmaxyx(canvas)
-    symbols = ['+', '*', '.', ':']
+    bottom_border, right_border = curses.window.getmaxyx(canvas)
+    left_border, upper_border = 0, 0
+    stars_symbols = ['+', '*', '.', ':']
     coroutines = []
 
     for _ in range(50):
-        row = random.choice(range(2, max_row-1))
-        column = random.choice(range(2, max_column-1))
-        symbol = random.choice(symbols)
+        row = random.choice(range(2, bottom_border-1))
+        column = random.choice(range(2, right_border-1))
+        symbol = random.choice(stars_symbols)
         coroutines.append(blink(canvas, row, column, symbol=symbol))
-    fire_row, fire_columb = max_row/2, max_column/2
+    fire_row, fire_columb = bottom_border/2, right_border/2
     coroutines.append(fire(canvas, fire_row, fire_columb, rows_speed=-2))
 
-    rocket_row, rocket_column = max_row/2, max_column/2
+    rocket_row, rocket_column = bottom_border/2, right_border/2
+    rocket_height, rocket_width = get_frame_size(rocket_frame_1)
 
     for frame in cycle('1122'):
 
@@ -89,6 +91,14 @@ def draw(canvas):
                 if rows_direction or columns_direction:
                     draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
                     draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
+                    if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
+                        continue
+                    elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
+                        continue
+                    elif rocket_column + rocket_width + columns_direction >= right_border and columns_direction > 0:
+                        continue
+                    elif rocket_column + columns_direction <= left_border and columns_direction < 0:
+                        continue
                     rocket_row += rows_direction
                     rocket_column += columns_direction
                 if frame == '1':
