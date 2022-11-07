@@ -87,6 +87,14 @@ def draw(canvas):
 
         try:
             for coroutine in coroutines.copy():
+                if frame == '1':
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1)
+                else:
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2)
+                coroutine.send(None)
+                canvas.refresh()
                 rows_direction, columns_direction, _ = read_controls(canvas)
                 if rows_direction or columns_direction:
                     draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
@@ -101,14 +109,6 @@ def draw(canvas):
                         continue
                     rocket_row += rows_direction
                     rocket_column += columns_direction
-                if frame == '1':
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1)
-                else:
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2)
-                coroutine.send(None)
-                canvas.refresh()
             time.sleep(0.1)
 
         except StopIteration:
