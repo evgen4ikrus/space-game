@@ -5,12 +5,12 @@ import random
 import time
 from itertools import cycle
 
-from curses_tools import draw_frame
+from curses_tools import draw_frame, read_controls
 
 
 async def blink(canvas, row, column, symbol='*'):
     while True:
-        for _ in range(20):
+        for _ in range(5):
             canvas.addstr(row, column, symbol, curses.A_DIM)
             await asyncio.sleep(0)
 
@@ -66,30 +66,41 @@ def draw(canvas):
 
     canvas.border()
     curses.curs_set(False)
+    canvas.nodelay(True)
     max_row, max_column = curses.window.getmaxyx(canvas)
     symbols = ['+', '*', '.', ':']
     coroutines = []
 
-    for _ in range(100):
+    for _ in range(50):
         row = random.choice(range(2, max_row-1))
         column = random.choice(range(2, max_column-1))
         symbol = random.choice(symbols)
         coroutines.append(blink(canvas, row, column, symbol=symbol))
-        column += 3
-    coroutines.append(fire(canvas, max_row/2, max_column/2, rows_speed=-2))
+    fire_row, fire_columb = max_row/2, max_column/2
+    coroutines.append(fire(canvas, fire_row, fire_columb, rows_speed=-2))
 
-    for frame in cycle('12'):
+    rocket_row, rocket_column = max_row/2, max_column/2
+
+    for frame in cycle('1122'):
+
         try:
             for coroutine in coroutines.copy():
+                rows_direction, columns_direction, _ = read_controls(canvas)
+                if rows_direction or columns_direction:
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
+                    rocket_row += rows_direction
+                    rocket_column += columns_direction
                 if frame == '1':
-                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_2, negative=True)
-                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_1)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1)
                 else:
-                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_1, negative=True)
-                    draw_frame(canvas, max_row/2, max_column/2, rocket_frame_2)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2)
                 coroutine.send(None)
                 canvas.refresh()
             time.sleep(0.1)
+
         except StopIteration:
             coroutines.remove(coroutine)
 
