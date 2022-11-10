@@ -78,9 +78,10 @@ def draw(canvas):
     stars_symbols = ['+', '*', '.', ':']
     coroutines = []
 
+    min_indent = 1
     for _ in range(50):
-        row = random.choice(range(2, bottom_border-1))
-        column = random.choice(range(2, right_border-1))
+        row = random.choice(range(min_indent, bottom_border-min_indent))
+        column = random.choice(range(min_indent, right_border-min_indent))
         symbol = random.choice(stars_symbols)
         coroutines.append(blink(canvas, row, column, symbol=symbol, offset_tics=10))
     fire_row, fire_columb = bottom_border/2, right_border/2
