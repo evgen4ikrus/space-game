@@ -107,23 +107,22 @@ def draw(canvas):
     rocket_height, rocket_width = get_frame_size(animations_frames[0])
 
     for frame in cycle(animations_frames):
-        try:
 
-            for coroutine in coroutines.copy():
-                draw_frame(canvas, rocket_row, rocket_column, frame)
+        for coroutine in coroutines.copy():
+            draw_frame(canvas, rocket_row, rocket_column, frame)
+            try:
                 coroutine.send(None)
+            except StopIteration:
+                coroutines.remove(coroutine)
 
-            canvas.refresh()
-            time.sleep(0.1)
-            draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
-            rows_direction, columns_direction, _ = read_controls(canvas)
-            if rows_direction or columns_direction:
-                rocket_row, rocket_column = get_new_rocket_coordinates(
-                    rocket_row, rocket_column, rows_direction, columns_direction,
-                    bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width)
-
-        except StopIteration:
-            coroutines.remove(coroutine)
+        canvas.refresh()
+        time.sleep(0.1)
+        draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
+        rows_direction, columns_direction, _ = read_controls(canvas)
+        if rows_direction or columns_direction:
+            rocket_row, rocket_column = get_new_rocket_coordinates(
+                rocket_row, rocket_column, rows_direction, columns_direction,
+                bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width)
 
 
 def main():
