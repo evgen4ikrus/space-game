@@ -94,7 +94,8 @@ def draw(canvas):
     coroutines = []
 
     min_indent = 1
-    for _ in range(50):
+    stars_count = 50
+    for _ in range(stars_count):
         row = random.choice(range(min_indent, bottom_border-min_indent))
         column = random.choice(range(min_indent, right_border-min_indent))
         symbol = random.choice(stars_symbols)
