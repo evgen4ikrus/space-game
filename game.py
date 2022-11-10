@@ -67,6 +67,21 @@ def get_animations_frames(folder='animations_frames'):
     return animations_frames
 
 
+def get_new_rocket_coordinates(rocket_row, rocket_column, rows_direction, columns_direction,
+                               bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width):
+    if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
+        return rocket_row, rocket_column
+    elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
+        return rocket_row, rocket_column
+    elif rocket_column + rocket_width + columns_direction >= right_border and columns_direction > 0:
+        return rocket_row, rocket_column
+    elif rocket_column + columns_direction <= left_border and columns_direction < 0:
+        return rocket_row, rocket_column
+    rocket_row += rows_direction
+    rocket_column += columns_direction
+    return rocket_row, rocket_column
+
+
 def draw(canvas):
     animations_frames = get_animations_frames()
 
@@ -90,33 +105,21 @@ def draw(canvas):
     rocket_row, rocket_column = bottom_border/2, right_border/2
     rocket_height, rocket_width = get_frame_size(animations_frames[0])
 
-    for frame in cycle('1122'):
-
+    for frame in cycle(animations_frames):
         try:
+
             for coroutine in coroutines.copy():
-                if frame == '1':
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1], negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0])
-                else:
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0], negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1])
+                draw_frame(canvas, rocket_row, rocket_column, frame)
                 coroutine.send(None)
                 canvas.refresh()
-                rows_direction, columns_direction, _ = read_controls(canvas)
-                if rows_direction or columns_direction:
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0], negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1], negative=True)
-                    if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
-                        continue
-                    elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
-                        continue
-                    elif rocket_column + rocket_width + columns_direction >= right_border and columns_direction > 0:
-                        continue
-                    elif rocket_column + columns_direction <= left_border and columns_direction < 0:
-                        continue
-                    rocket_row += rows_direction
-                    rocket_column += columns_direction
+
             time.sleep(0.1)
+            draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
+            rows_direction, columns_direction, _ = read_controls(canvas)
+            if rows_direction or columns_direction:
+                rocket_row, rocket_column = get_new_rocket_coordinates(
+                    rocket_row, rocket_column, rows_direction, columns_direction,
+                    bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width)
 
         except StopIteration:
             coroutines.remove(coroutine)
