@@ -111,8 +111,8 @@ def draw(canvas):
             for coroutine in coroutines.copy():
                 draw_frame(canvas, rocket_row, rocket_column, frame)
                 coroutine.send(None)
-                canvas.refresh()
 
+            canvas.refresh()
             time.sleep(0.1)
             draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
             rows_direction, columns_direction, _ = read_controls(canvas)
