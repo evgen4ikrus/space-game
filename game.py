@@ -58,11 +58,17 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
+def get_animations_frames(folder='animations_frames'):
+    file_names = os.listdir(folder)
+    animations_frames = []
+    for file_name in file_names:
+        with open(os.path.join('animations_frames', file_name), "r") as file:
+            animations_frames.append(file.read())
+    return animations_frames
+
+
 def draw(canvas):
-    with open(os.path.join('animations_frames', 'rocket_frame_1.txt'), "r") as file:
-        rocket_frame_1 = file.read()
-    with open(os.path.join('animations_frames', 'rocket_frame_2.txt'), "r") as file:
-        rocket_frame_2 = file.read()
+    animations_frames = get_animations_frames()
 
     canvas.border()
     curses.curs_set(False)
@@ -81,24 +87,24 @@ def draw(canvas):
     coroutines.append(fire(canvas, fire_row, fire_columb, rows_speed=-2))
 
     rocket_row, rocket_column = bottom_border/2, right_border/2
-    rocket_height, rocket_width = get_frame_size(rocket_frame_1)
+    rocket_height, rocket_width = get_frame_size(animations_frames[0])
 
     for frame in cycle('1122'):
 
         try:
             for coroutine in coroutines.copy():
                 if frame == '1':
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1], negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0])
                 else:
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0], negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1])
                 coroutine.send(None)
                 canvas.refresh()
                 rows_direction, columns_direction, _ = read_controls(canvas)
                 if rows_direction or columns_direction:
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_2, negative=True)
-                    draw_frame(canvas, rocket_row, rocket_column, rocket_frame_1, negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[0], negative=True)
+                    draw_frame(canvas, rocket_row, rocket_column, animations_frames[1], negative=True)
                     if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
                         continue
                     elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
