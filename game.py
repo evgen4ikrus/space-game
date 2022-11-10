@@ -8,13 +8,13 @@ from itertools import cycle
 from curses_tools import draw_frame, read_controls, get_frame_size
 
 
-async def blink(canvas, row, column, symbol='*'):
+async def blink(canvas, row, column, symbol='*', offset_tics=0):
     while True:
-        for _ in range(5):
+        for _ in range(20):
             canvas.addstr(row, column, symbol, curses.A_DIM)
             await asyncio.sleep(0)
 
-        for _ in range(random.randint(0, 20)):
+        for _ in range(random.randint(0, offset_tics)):
             await asyncio.sleep(0)
 
         for _ in range(3):
@@ -76,7 +76,7 @@ def draw(canvas):
         row = random.choice(range(2, bottom_border-1))
         column = random.choice(range(2, right_border-1))
         symbol = random.choice(stars_symbols)
-        coroutines.append(blink(canvas, row, column, symbol=symbol))
+        coroutines.append(blink(canvas, row, column, symbol=symbol, offset_tics=10))
     fire_row, fire_columb = bottom_border/2, right_border/2
     coroutines.append(fire(canvas, fire_row, fire_columb, rows_speed=-2))
 
