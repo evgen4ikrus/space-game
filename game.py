@@ -5,7 +5,7 @@ import random
 import time
 from itertools import cycle
 
-from curses_tools import draw_frame, read_controls, get_frame_size
+from curses_tools import draw_frame, get_frame_size, read_controls
 
 
 async def blink(canvas, row, column, symbol='*', offset_tics=0):
@@ -67,18 +67,20 @@ def get_animations_frames(folder='animations_frames'):
     return animations_frames
 
 
-def get_new_rocket_coordinates(rocket_row, rocket_column, rows_direction, columns_direction,
-                               bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width):
+def get_new_rocket_coordinates(rocket_row, rocket_column, rows_direction, columns_direction, bottom_border,
+                               upper_border, right_border, left_border, rocket_height,
+                               rocket_width, canvas_border_indent):
     if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
-        return rocket_row, rocket_column
+        rocket_row = bottom_border - rocket_height - canvas_border_indent
     elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
-        return rocket_row, rocket_column
+        rocket_row = upper_border + canvas_border_indent
     elif rocket_column + rocket_width + columns_direction >= right_border and columns_direction > 0:
-        return rocket_row, rocket_column
+        rocket_column = right_border - rocket_width - canvas_border_indent
     elif rocket_column + columns_direction <= left_border and columns_direction < 0:
-        return rocket_row, rocket_column
-    rocket_row += rows_direction
-    rocket_column += columns_direction
+        rocket_column = left_border + canvas_border_indent
+    else:
+        rocket_row += rows_direction
+        rocket_column += columns_direction
     return rocket_row, rocket_column
 
 
@@ -92,12 +94,12 @@ def draw(canvas):
     left_border, upper_border = 0, 0
     stars_symbols = ['+', '*', '.', ':']
     coroutines = []
-
-    min_indent = 1
+    canvas_border_indent = 1
     stars_count = 50
+
     for _ in range(stars_count):
-        row = random.choice(range(min_indent, bottom_border-min_indent))
-        column = random.choice(range(min_indent, right_border-min_indent))
+        row = random.choice(range(canvas_border_indent, bottom_border-canvas_border_indent))
+        column = random.choice(range(canvas_border_indent, right_border-canvas_border_indent))
         symbol = random.choice(stars_symbols)
         coroutines.append(blink(canvas, row, column, symbol=symbol, offset_tics=10))
     fire_row, fire_columb = bottom_border/2, right_border/2
@@ -105,6 +107,7 @@ def draw(canvas):
 
     rocket_row, rocket_column = bottom_border/2, right_border/2
     rocket_height, rocket_width = get_frame_size(animations_frames[0])
+    rocket_speed = 3
 
     for frame in cycle(animations_frames):
 
@@ -118,11 +121,11 @@ def draw(canvas):
         canvas.refresh()
         time.sleep(0.1)
         draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
-        rows_direction, columns_direction, _ = read_controls(canvas)
+        rows_direction, columns_direction, _ = read_controls(canvas, speed=rocket_speed)
         if rows_direction or columns_direction:
             rocket_row, rocket_column = get_new_rocket_coordinates(
-                rocket_row, rocket_column, rows_direction, columns_direction,
-                bottom_border, upper_border, right_border, left_border, rocket_height, rocket_width)
+                rocket_row, rocket_column, rows_direction, columns_direction, bottom_border,
+                upper_border, right_border, left_border, rocket_height, rocket_width, canvas_border_indent)
 
 
 def main():
