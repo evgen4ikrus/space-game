@@ -67,31 +67,43 @@ def get_animations_frames(folder='animations_frames'):
     return animations_frames
 
 
-def get_new_rocket_coordinates(rocket_row, rocket_column, rows_direction, columns_direction, bottom_border,
-                               upper_border, right_border, left_border, rocket_height,
-                               rocket_width, canvas_border_indent):
-    if rocket_row + rocket_height + rows_direction >= bottom_border and rows_direction > 0:
-        rocket_row = bottom_border - rocket_height - canvas_border_indent
-    elif rocket_row + rows_direction <= upper_border and rows_direction < 0:
-        rocket_row = upper_border + canvas_border_indent
-    elif rocket_column + rocket_width + columns_direction >= right_border and columns_direction > 0:
-        rocket_column = right_border - rocket_width - canvas_border_indent
-    elif rocket_column + columns_direction <= left_border and columns_direction < 0:
-        rocket_column = left_border + canvas_border_indent
-    else:
-        rocket_row += rows_direction
-        rocket_column += columns_direction
+def get_new_rocket_coordinates(canvas, rocket_frame, rocket_row, rocket_column, rows_direction,
+                               columns_direction, canvas_border_indent):
+    height, width = curses.window.getmaxyx(canvas)
+    rocket_row += rows_direction
+    rocket_column += columns_direction
+    rocket_height, rocket_width = get_frame_size(rocket_frame)
+    if rocket_row <= 0:
+        rocket_row = canvas_border_indent
+    if rocket_row >= height - rocket_height:
+        rocket_row = height - rocket_height - canvas_border_indent
+    if rocket_column <= 0:
+        rocket_column = canvas_border_indent
+    if rocket_column >= width - rocket_width - canvas_border_indent:
+        rocket_column = width - rocket_width - canvas_border_indent
     return rocket_row, rocket_column
 
 
+async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
+                            canvas_border_indent):
+    for rocket_frame in cycle(rocket_frames):
+        rows_direction, columns_direction, _ = read_controls(canvas)
+        rocket_row, rocket_column = get_new_rocket_coordinates(
+            canvas, rocket_frame, rocket_row, rocket_column, rows_direction,
+            columns_direction, canvas_border_indent)
+        draw_frame(canvas, rocket_row, rocket_column, rocket_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, rocket_row, rocket_column, rocket_frame, negative=True)
+
+
 def draw(canvas):
-    animations_frames = get_animations_frames()
+    rocket_frames = get_animations_frames()
 
     canvas.border()
     curses.curs_set(False)
     canvas.nodelay(True)
     bottom_border, right_border = curses.window.getmaxyx(canvas)
-    left_border, upper_border = 0, 0
+
     stars_symbols = ['+', '*', '.', ':']
     coroutines = []
     canvas_border_indent = 1
@@ -104,15 +116,11 @@ def draw(canvas):
         coroutines.append(blink(canvas, row, column, symbol=symbol, offset_tics=10))
     fire_row, fire_column = bottom_border/2, right_border/2
     coroutines.append(fire(canvas, fire_row, fire_column, rows_speed=-2))
+    coroutines.append(animate_spaceship(canvas, rocket_frames, bottom_border/2, right_border/2, canvas_border_indent))
 
-    rocket_row, rocket_column = bottom_border/2, right_border/2
-    rocket_height, rocket_width = get_frame_size(animations_frames[0])
-    rocket_speed = 3
-
-    for frame in cycle(animations_frames):
+    while True:
 
         for coroutine in coroutines.copy():
-            draw_frame(canvas, rocket_row, rocket_column, frame)
             try:
                 coroutine.send(None)
             except StopIteration:
@@ -120,12 +128,6 @@ def draw(canvas):
 
         canvas.refresh()
         time.sleep(0.1)
-        draw_frame(canvas, rocket_row, rocket_column, frame, negative=True)
-        rows_direction, columns_direction, _ = read_controls(canvas, speed=rocket_speed)
-        if rows_direction or columns_direction:
-            rocket_row, rocket_column = get_new_rocket_coordinates(
-                rocket_row, rocket_column, rows_direction, columns_direction, bottom_border,
-                upper_border, right_border, left_border, rocket_height, rocket_width, canvas_border_indent)
 
 
 def main():

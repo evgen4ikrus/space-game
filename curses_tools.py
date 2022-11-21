@@ -5,7 +5,7 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 
-def read_controls(canvas, speed=1):
+def read_controls(canvas, speed=2):
     """Read keys pressed and returns tuple witl controls state."""
 
     rows_direction = columns_direction = 0
