@@ -102,8 +102,8 @@ def draw(canvas):
         column = random.choice(range(canvas_border_indent, right_border-canvas_border_indent))
         symbol = random.choice(stars_symbols)
         coroutines.append(blink(canvas, row, column, symbol=symbol, offset_tics=10))
-    fire_row, fire_columb = bottom_border/2, right_border/2
-    coroutines.append(fire(canvas, fire_row, fire_columb, rows_speed=-2))
+    fire_row, fire_column = bottom_border/2, right_border/2
+    coroutines.append(fire(canvas, fire_row, fire_column, rows_speed=-2))
 
     rocket_row, rocket_column = bottom_border/2, right_border/2
     rocket_height, rocket_width = get_frame_size(animations_frames[0])
