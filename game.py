@@ -69,18 +69,18 @@ def get_animations_frames(folder='animations_frames'):
 
 def get_new_rocket_coordinates(canvas, rocket_frame, rocket_row, rocket_column, rows_direction,
                                columns_direction, canvas_border_indent):
-    height, width = curses.window.getmaxyx(canvas)
+    frame_rows, frame_columns = curses.window.getmaxyx(canvas)
     rocket_row += rows_direction
     rocket_column += columns_direction
     rocket_height, rocket_width = get_frame_size(rocket_frame)
     if rocket_row <= 0:
         rocket_row = canvas_border_indent
-    if rocket_row >= height - rocket_height:
-        rocket_row = height - rocket_height - canvas_border_indent
+    if rocket_row >= frame_rows - rocket_height:
+        rocket_row = frame_rows - rocket_height - canvas_border_indent
     if rocket_column <= 0:
         rocket_column = canvas_border_indent
-    if rocket_column >= width - rocket_width - canvas_border_indent:
-        rocket_column = width - rocket_width - canvas_border_indent
+    if rocket_column >= frame_columns - rocket_width - canvas_border_indent:
+        rocket_column = frame_columns - rocket_width - canvas_border_indent
     return rocket_row, rocket_column
 
 
