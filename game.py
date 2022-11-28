@@ -58,11 +58,11 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-def get_animations_frames(folder='animations_frames'):
-    file_names = os.listdir(folder)
+def get_animations_frames(path):
+    file_names = os.listdir(path)
     animations_frames = []
     for file_name in file_names:
-        with open(os.path.join('animations_frames', file_name), "r") as file:
+        with open(os.path.join(path, file_name), "r") as file:
             animations_frames.append(file.read())
     return animations_frames
 
@@ -96,8 +96,27 @@ async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
         draw_frame(canvas, rocket_row, rocket_column, rocket_frame, negative=True)
 
 
+async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
+
+
 def draw(canvas):
-    rocket_frames = get_animations_frames()
+    rocket_frames_path = os.path.join('animations_frames', 'rocket')
+    space_garbage_path = os.path.join('animations_frames', 'space_debris')
+    rocket_frames = get_animations_frames(rocket_frames_path)
+    space_garbage_frames = get_animations_frames(space_garbage_path)
 
     canvas.border()
     curses.curs_set(False)
@@ -121,6 +140,8 @@ def draw(canvas):
     fire_row, fire_column = bottom_border / 2, right_border / 2
     coroutines.append(fire(canvas, fire_row, fire_column, rows_speed=-2))
     coroutines.append(animate_spaceship(canvas, rocket_frames, rocket_column, rocket_row, canvas_border_indent))
+    garbage_column = 25
+    coroutines.append(fly_garbage(canvas, garbage_column, space_garbage_frames[0], speed=0.5))
 
     while True:
 
