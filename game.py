@@ -8,26 +8,22 @@ from itertools import cycle
 from curses_tools import draw_frame, get_frame_size, read_controls
 
 
+async def sleep(tics=1):
+    for _ in range(tics):
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, column, symbol='*', offset_tics=0):
     while True:
-        for _ in range(20):
-            canvas.addstr(row, column, symbol, curses.A_DIM)
-            await asyncio.sleep(0)
-
-        for _ in range(random.randint(0, offset_tics)):
-            await asyncio.sleep(0)
-
-        for _ in range(3):
-            canvas.addstr(row, column, symbol)
-            await asyncio.sleep(0)
-
-        for _ in range(5):
-            canvas.addstr(row, column, symbol, curses.A_BOLD)
-            await asyncio.sleep(0)
-
-        for _ in range(3):
-            canvas.addstr(row, column, symbol)
-            await asyncio.sleep(0)
+        canvas.addstr(row, column, symbol, curses.A_DIM)
+        await sleep(tics=20)
+        await sleep(tics=random.randint(0, offset_tics))
+        canvas.addstr(row, column, symbol)
+        await sleep(tics=3)
+        canvas.addstr(row, column, symbol, curses.A_BOLD)
+        await sleep(tics=5)
+        canvas.addstr(row, column, symbol)
+        await sleep(tics=3)
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
@@ -112,8 +108,7 @@ async def fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canv
     _, frame_columns = curses.window.getmaxyx(canvas)
     while True:
         offset_tics = random.randint(0, 15)
-        for _ in range(0, offset_tics):
-            await asyncio.sleep(0)
+        await sleep(tics=offset_tics)
         garbage_frame = random.choice(space_garbage_frames)
         _, garbage_width = get_frame_size(garbage_frame)
         garbage_column = random.randint(canvas_border_indent, frame_columns - garbage_width - canvas_border_indent)
@@ -134,7 +129,7 @@ def draw(canvas):
     stars_symbols = ['+', '*', '.', ':']
     coroutines = []
     canvas_border_indent = 1
-    stars_count = 50
+    stars_count = 100
 
     for _ in range(stars_count):
         row = random.choice(range(canvas_border_indent, bottom_border-canvas_border_indent))
