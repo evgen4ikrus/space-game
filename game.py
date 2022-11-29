@@ -97,19 +97,27 @@ async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
-    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
     rows_number, columns_number = canvas.getmaxyx()
-
     column = max(column, 0)
     column = min(column, columns_number - 1)
-
     row = 0
-
     while row < rows_number:
         draw_frame(canvas, row, column, garbage_frame)
         await asyncio.sleep(0)
         draw_frame(canvas, row, column, garbage_frame, negative=True)
         row += speed
+
+
+async def fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canvas_border_indent):
+    _, frame_columns = curses.window.getmaxyx(canvas)
+    while True:
+        offset_tics = random.randint(0, 15)
+        for _ in range(0, offset_tics):
+            await asyncio.sleep(0)
+        garbage_frame = random.choice(space_garbage_frames)
+        _, garbage_width = get_frame_size(garbage_frame)
+        garbage_column = random.randint(canvas_border_indent, frame_columns - garbage_width - canvas_border_indent)
+        coroutines.append(fly_garbage(canvas, garbage_column, garbage_frame, speed=0.5))
 
 
 def draw(canvas):
@@ -140,8 +148,7 @@ def draw(canvas):
     fire_row, fire_column = bottom_border / 2, right_border / 2
     coroutines.append(fire(canvas, fire_row, fire_column, rows_speed=-2))
     coroutines.append(animate_spaceship(canvas, rocket_frames, rocket_column, rocket_row, canvas_border_indent))
-    garbage_column = 25
-    coroutines.append(fly_garbage(canvas, garbage_column, space_garbage_frames[0], speed=0.5))
+    coroutines.append(fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canvas_border_indent))
 
     while True:
 
