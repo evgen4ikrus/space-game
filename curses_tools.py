@@ -1,3 +1,6 @@
+from physics import update_speed
+
+
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
@@ -5,7 +8,7 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 
-def read_controls(canvas, speed=2):
+def read_controls(canvas, row_speed, column_speed):
     """Read keys pressed and returns tuple witl controls state."""
 
     rows_direction = columns_direction = 0
@@ -19,16 +22,24 @@ def read_controls(canvas, speed=2):
             break
 
         if pressed_key_code == UP_KEY_CODE:
-            rows_direction = -speed
+            row_speed, column_speed = update_speed(row_speed, column_speed, -1, 0)
+            rows_direction += row_speed
 
-        if pressed_key_code == DOWN_KEY_CODE:
-            rows_direction = speed
+        elif pressed_key_code == DOWN_KEY_CODE:
+            row_speed, column_speed = update_speed(row_speed, column_speed, 1, 0)
+            rows_direction += row_speed
 
-        if pressed_key_code == RIGHT_KEY_CODE:
-            columns_direction = speed
+        elif pressed_key_code == RIGHT_KEY_CODE:
+            row_speed, column_speed = update_speed(row_speed, column_speed, 0, 1)
+            columns_direction += column_speed
 
-        if pressed_key_code == LEFT_KEY_CODE:
-            columns_direction = -speed
+        elif pressed_key_code == LEFT_KEY_CODE:
+            row_speed, column_speed = update_speed(row_speed, column_speed, 0, -1)
+            columns_direction += column_speed
+
+        else:
+            row_speed, column_speed = update_speed(row_speed, column_speed, 0, 0)
+            row_speed, column_speed = row_speed + row_speed, column_speed + column_speed
 
         if pressed_key_code == SPACE_KEY_CODE:
             space_pressed = True

@@ -7,6 +7,8 @@ from itertools import cycle
 
 from curses_tools import draw_frame, get_frame_size, read_controls
 
+row_speed, column_speed = 0, 0
+
 
 async def sleep(tics=1):
     for _ in range(tics):
@@ -83,10 +85,11 @@ def get_new_rocket_coordinates(canvas, rocket_frame, rocket_row, rocket_column, 
 async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
                             canvas_border_indent):
     for rocket_frame in cycle(rocket_frames):
-        rows_direction, columns_direction, _ = read_controls(canvas)
+        global row_speed, column_speed
+        row_speed, column_speed, _ = read_controls(canvas, row_speed, column_speed)
         rocket_row, rocket_column = get_new_rocket_coordinates(
-            canvas, rocket_frame, rocket_row, rocket_column, rows_direction,
-            columns_direction, canvas_border_indent)
+            canvas, rocket_frame, rocket_row, rocket_column, row_speed,
+            column_speed, canvas_border_indent)
         draw_frame(canvas, rocket_row, rocket_column, rocket_frame)
         await asyncio.sleep(0)
         draw_frame(canvas, rocket_row, rocket_column, rocket_frame, negative=True)
@@ -107,12 +110,12 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
 async def fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canvas_border_indent):
     _, frame_columns = curses.window.getmaxyx(canvas)
     while True:
-        offset_tics = random.randint(0, 15)
+        offset_tics = random.randint(0, 50)
         await sleep(tics=offset_tics)
         garbage_frame = random.choice(space_garbage_frames)
         _, garbage_width = get_frame_size(garbage_frame)
         garbage_column = random.randint(canvas_border_indent, frame_columns - garbage_width - canvas_border_indent)
-        coroutines.append(fly_garbage(canvas, garbage_column, garbage_frame, speed=0.5))
+        coroutines.append(fly_garbage(canvas, garbage_column, garbage_frame, speed=0.2))
 
 
 def draw(canvas):
@@ -154,7 +157,7 @@ def draw(canvas):
                 coroutines.remove(coroutine)
 
         canvas.refresh()
-        time.sleep(0.1)
+        time.sleep(0.02)
 
 
 def main():
