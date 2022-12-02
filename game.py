@@ -7,6 +7,8 @@ from itertools import cycle
 
 from curses_tools import draw_frame, get_frame_size, read_controls, update_speed
 
+coroutines = []
+
 
 async def sleep(tics=1):
     for _ in range(tics):
@@ -86,7 +88,7 @@ async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
                             canvas_border_indent):
     row_speed = column_speed = 0
     for rocket_frame in cycle(rocket_frames):
-        rows_direction, columns_direction, _ = read_controls(canvas)
+        rows_direction, columns_direction, space_pressed = read_controls(canvas)
         rocket_row, rocket_column, row_speed, column_speed = get_new_rocket_coordinates(
             canvas, rocket_frame,
             rocket_row, rocket_column,
@@ -97,6 +99,10 @@ async def animate_spaceship(canvas, rocket_frames, rocket_row, rocket_column,
         draw_frame(canvas, rocket_row, rocket_column, rocket_frame)
         await asyncio.sleep(0)
         draw_frame(canvas, rocket_row, rocket_column, rocket_frame, negative=True)
+        if space_pressed:
+            _, rocket_width = get_frame_size(rocket_frame)
+            fire_column = rocket_column + rocket_width / 2
+            coroutines.append(fire(canvas, rocket_row, fire_column, rows_speed=-2))
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
@@ -111,7 +117,7 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
         row += speed
 
 
-async def fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canvas_border_indent):
+async def fill_orbit_with_garbage(canvas, space_garbage_frames, canvas_border_indent):
     _, frame_columns = curses.window.getmaxyx(canvas)
     while True:
         offset_tics = random.randint(0, 15)
@@ -123,6 +129,7 @@ async def fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canv
 
 
 def draw(canvas):
+    global coroutines
     rocket_frames_path = os.path.join('animations_frames', 'rocket')
     space_garbage_path = os.path.join('animations_frames', 'space_debris')
     rocket_frames = get_animations_frames(rocket_frames_path)
@@ -134,7 +141,6 @@ def draw(canvas):
     bottom_border, right_border = curses.window.getmaxyx(canvas)
 
     stars_symbols = ['+', '*', '.', ':']
-    coroutines = []
     canvas_border_indent = 1
     stars_count = 100
 
@@ -147,10 +153,8 @@ def draw(canvas):
     _, rocket_width = get_frame_size(rocket_frames[0])
     rocket_row = right_border / 2 - int(rocket_width / 2)
     rocket_column = bottom_border / 2
-    fire_row, fire_column = bottom_border / 2, right_border / 2
-    coroutines.append(fire(canvas, fire_row, fire_column, rows_speed=-2))
     coroutines.append(animate_spaceship(canvas, rocket_frames, rocket_column, rocket_row, canvas_border_indent))
-    coroutines.append(fill_orbit_with_garbage(canvas, space_garbage_frames, coroutines, canvas_border_indent))
+    coroutines.append(fill_orbit_with_garbage(canvas, space_garbage_frames, canvas_border_indent))
 
     while True:
 
